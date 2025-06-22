@@ -107,6 +107,8 @@ class MyNeighborhood1(Neighborhood):
                         op_to_reschedule.schedule(m_copy.machine_id, start_time, check_success=False)
                         previous_op_end_time = op_to_reschedule.end_time
 
+                    neighbor_sol._objective_value = None
+
                     yield neighbor_sol
 
 
@@ -187,5 +189,7 @@ class MyNeighborhood2(Neighborhood):
                 original_machine_id_for_op = sol.inst.get_operation(op_reschedule.operation_id).assigned_to
                 machine_to_use = neighbor_sol.inst.get_machine(original_machine_id_for_op)
                 neighbor_sol.schedule(op_reschedule, machine_to_use)
+
+            neighbor_sol._objective_value = None
 
             yield neighbor_sol

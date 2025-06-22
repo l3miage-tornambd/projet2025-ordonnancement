@@ -284,3 +284,15 @@ gantt
 
 ---
 
+### 3.4 Comparaison des deux algorithmes de recherche locale et de l'algorithme glouton
+
+Le script `script_compare_algos.py` qui se trouve sous le dossier `src/scheduling/optim` permet de comparer les performances des deux algorithmes de recherche locale (avec les deux voisinages) et de l'algorithme glouton.
+Après exécution, il génère à la racine du projet `results.csv` contenant 4 colonnes :
+- `instance` : Le nom de l'instance utilisée.
+- `algorithme` : Le nom de l'algorithme utilisé.
+- `valeur_objectif` : Le score de la solution trouvée par l'algorithme.
+- `temps_execution_s` : Le temps d'exécution de l'algorithme en secondes.
+
+
+
+
