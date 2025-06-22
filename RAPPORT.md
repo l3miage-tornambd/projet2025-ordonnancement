@@ -1,6 +1,6 @@
-# Rapport TP Ordonnancement
+# Rapport TP ordonnancement
 
-**Réalisé par Bastien Riado, Levi Cormier et Damien Tornambe dans le cadre du Master Miage 2025 à l'UFR IM²AG de l'UGA**
+**Réalisé par Bastien Riado, Levi Cormier et Damien Tornambé dans le cadre du Master Miage 2025 à l'UFR IM²AG de l'UGA**
 
 ## 1. Modélisation
 
@@ -53,7 +53,7 @@ $$
 
 ---
 
-## 1.4 Évaluation d'une solution
+### 1.4 Évaluation d'une solution
 
 > **Question :** Comment évaluer (c'est-à-dire donner une valeur à) une solution réalisable ? Comment évaluer une solution non réalisable ?
 
@@ -71,7 +71,7 @@ $$
 
 ---
 
-## Exemple d’instance sans solution réalisable
+### 1.5 Exemple d’instance sans solution réalisable
 
 Considérons une instance simple pour illustrer un cas sans solution réalisable.
 
@@ -91,17 +91,127 @@ Le graphique ci-dessous compare la charge de travail totale requise avec la capa
 
 ```mermaid
 gantt
-    title Comparaison Charge de Travail vs Capacité Totale
+    title Comparaison charge de travail vs capacité totale
     dateFormat mm
     axisFormat %M
     
-    section Charge Requise Totale
-    Toutes Opérations: 0, 22
+    section Charge requise totale
+    Toutes opérations: 0, 22
     
-    section Capacité Disponible Totale
+    section Capacité disponible totale
     M1 + M2: 0, 20
 ```
 
 Il est dès lors très facile de voir qu’avec une telle instance, il nous sera impossible de respecter l’une de nos contraintes, à savoir de ne pas dépasser le temps d’exécution maximal de chaque machine.
 
 En effet, peu importe l'arrangement, la somme des durées d'exécutions des tâches est de **22 minutes** (`6+5+5+6`), alors que l'on ne dispose que de **20 minutes** de capacité totale (`10+10`). Il n’existe donc aucune solution réalisable pour cette instance.
+
+### 1.6 Implémentation des classes
+
+Le package `instance` et le module `solution` ont été complétés en fonction des réponses ci-dessus.
+
+## 2. Premières heuristiques
+
+> **Note :** Les visuels qui suivront, à la fois dans cette partie 2 mais également dans la partie 3, se baseront sur l'exemple simple suivant : 2 machines (M1, M2) et 2 jobs (J1, J2), chacun avec 2 opérations.
+> * **Job 1 :** Op1A → Op1B
+> * **Job 2 :** Op2A → Op2B
+
+---
+
+### 2.1 Heuristique gloutonne déterministe
+
+#### Choix de l'heuristique
+
+Nous avons choisi un critère glouton très commun en ordonnancement : celui de la **fin au plus tôt**.
+
+#### Principe de l'algorithme : Sélection par ID et meilleure machine
+
+L'algorithme construit la solution étape par étape de la manière suivante :
+
+1.  On part d'un planning vide.
+2.  Tant qu'il reste des opérations à planifier, on récupère la liste de toutes les **opérations "disponibles"** (dont les prédécesseurs sont terminés).
+3.  **Sélection déterministe :** Pour garantir que le résultat soit toujours le même, on trie cette liste par l'identifiant des opérations (`operation_id`) et on sélectionne toujours la première.
+4.  Pour l'opération sélectionnée, on évalue toutes les machines capables de l'exécuter. Pour chaque machine, on calcule l'heure de fin potentielle de l'opération.
+5.  **Choix glouton :** On sélectionne la machine qui permet d'obtenir **l'heure de fin la plus précoce** pour cette opération spécifique.
+6.  On planifie l'opération sur cette "meilleure" machine et on recommence le processus.
+
+> **Justification du caractère glouton**
+>
+> Cet algorithme est qualifié de "glouton" car à chaque étape, il prend la décision qui semble la meilleure **localement et à court terme**. En choisissant de finir l'opération actuelle le plus vite possible, il optimise l'étape présente sans aucune garantie sur la qualité globale de la solution finale. Ce choix pourrait monopoliser une ressource critique et, au final, dégrader la durée totale du planning (`Cmax`).
+
+#### Complexité
+Soit **N** le nombre total d'opérations et **M** le nombre total de machines.
+
+- La boucle principale s'exécute **N** fois, une fois pour chaque opération.
+- À chaque itération de la boucle :
+    - La collecte des opérations disponibles prend au plus `O(N)`.
+    - La sélection de l'opération avec le plus petit ID prend `O(N)`.
+    - La recherche de la meilleure machine nécessite de tester jusqu'à `M` machines, donc `O(M)`.
+- Le coût d'une itération est donc `O(N + M)`.
+
+La complexité totale de l'heuristique gloutonne est de **`O(N * (N + M))`**, ce qui se simplifie en **`O(N² + NM)`**.
+
+#### Visualisation du planning généré par l'heuristique gloutonne déterministe
+```mermaid
+gantt
+    title Heuristique gloutonne (déterministe)
+    dateFormat HH:mm
+    axisFormat %H:%M
+    
+    section Machine 1
+    Op1A (J1) :j1, 00:00, 3h
+    Op2A (J2) :j2, 03:00, 4h
+    
+    section Machine 2
+    Op1B (J1) :j1, 00:00, 2h
+    Op2B (J2) :j2, 04:00, 3h
+```
+---
+
+### 2.2 Heuristique non-déterministe
+
+#### Choix de l'heuristique
+
+Nous décidons de reprendre l'algorithme glouton de la partie 2.1, et d'introduire un élément **aléatoire** dans la sélection des opérations à exécuter.
+
+#### Principe de l'algorithme : Sélection aléatoire et meilleure machine
+
+L'algorithme est très similaire au précédent, à l'exception d'une seule étape cruciale :
+
+1.  On part d'un planning vide.
+2.  Tant qu'il reste des opérations à planifier, on récupère la liste de toutes les opérations "disponibles".
+3.  **Sélection non-déterministe :** Au lieu de trier la liste, on en choisit une opération **au hasard** avec `random.choice()`. C'est cette étape qui garantit qu'une nouvelle exécution produira un résultat différent.
+4.  Pour l'opération choisie aléatoirement, on applique la même logique gloutonne que précédemment : on trouve la machine qui lui assure la fin au plus tôt (ECT).
+5.  On planifie l'opération sur cette meilleure machine et on recommence.
+
+#### Complexité
+La structure de l'algorithme reste la même que celle de la version déterministe.
+
+- La boucle principale s'exécute **N** fois.
+- À chaque itération de la boucle :
+    - La collecte des opérations disponibles prend `O(N)`.
+    - Le choix d'une opération au hasard dans la liste prend `O(1)`.
+    - La recherche de la meilleure machine prend `O(M)`.
+- Le coût d'une itération est donc également `O(N + M)`.
+
+La complexité totale de l'heuristique non-déterministe est donc identique à celle de la version déterministe : **`O(N * (N + M))`** ou **`O(N² + NM)`**.
+
+#### Visualisation du planning généré par l'heuristique non-déterministe
+```mermaid
+gantt
+    title Heuristique non-déterministe (représente 1 résultat possible)
+    dateFormat HH:mm
+    axisFormat %H:%M
+    
+    section Machine 1
+    Op2A (J2) :j2, 00:00, 4h
+    Op1B (J1) :j1, 04:00, 2h
+
+    section Machine 2
+    Op1A (J1) :j1, 00:00, 3h
+    Op2B (J2) :j2, 04:00, 3h
+```
+
+---
+
+## 3. Recherche locale
