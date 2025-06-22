@@ -137,7 +137,8 @@ L'algorithme construit la solution étape par étape de la manière suivante :
 
 > **Justification du caractère glouton**
 >
-> Cet algorithme est qualifié de "glouton" car à chaque étape, il prend la décision qui semble la meilleure **localement et à court terme**. En choisissant de finir l'opération actuelle le plus vite possible, il optimise l'étape présente sans aucune garantie sur la qualité globale de la solution finale. Ce choix pourrait monopoliser une ressource critique et, au final, dégrader la durée totale du planning (`Cmax`).
+> C'est un algorithme glouton car il décide de l'ordonnancement des tâches de manière **locale**. 
+> Il optimise l'étape présente sans aucune garantie sur la qualité globale de la solution finale.
 
 #### Complexité
 Soit **N** le nombre total d'opérations et **M** le nombre total de machines.
