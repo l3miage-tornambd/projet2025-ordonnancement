@@ -292,7 +292,15 @@ Après exécution, il génère à la racine du projet `results.csv` contenant 4 
 - `algorithme` : Le nom de l'algorithme utilisé.
 - `valeur_objectif` : Le score de la solution trouvée par l'algorithme.
 - `temps_execution_s` : Le temps d'exécution de l'algorithme en secondes.
+ 
+Nous constatons que l'algorithme glouton est très rapide, mais trouve dans la grande majorité des cas des valeurs objectifs bien moins
+performantes que les deux algorithmes de recherche locale.
 
+En ce qui concerne les deux algorithmes de recherche locale, on constate que l'algorithme avec l'échange d'opérations 
+sur la même machine est généralement plus performant que celui qui change la machine d'une opération.
 
-
+Toutefois, dans certains cas particuliers, l'algorithme de changement de machine peut trouver une solution meilleure que l'échange d'opérations.
+Il serait dont intéressant de combiner les deux algorithmes, rendant la recherche locale plus efficace mais plus lente.
+Ce constat est assez logique puisque l'échange d'opérations ne permet pas de changer l'affectation des opérations aux machines, 
+alors que le changement de machine le permet.
 

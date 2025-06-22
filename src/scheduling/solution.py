@@ -221,6 +221,7 @@ class Solution(object):
         '''
         return self.inst.operations
 
+
     def schedule(self, operation: Operation, machine: Machine):
         '''
         Schedules the operation at the end of the planning of the machine.

@@ -75,41 +75,54 @@ class MyNeighborhood1(Neighborhood):
         return sol
 
     def _iter_neighbors(self, sol: Solution) -> Iterator[Solution]:
-        """Méthode qui contient la logique métier de l'échange de deux opérations adjacentes sur la même machine."""
+        """
+        Génère les voisins en échangeant deux opérations adjacentes sur UNE SEULE machine
+        choisie au hasard.
+        Version finale intégrant la suggestion de l'utilisateur et la replanification robuste.
+        """
+        # On s'assure de ne pas choisir une machine avec moins de 2 opérations
+        possible_machines = [m for m in self._instance.machines if len(m.scheduled_operations) >= 2]
+        if not possible_machines:
+            # S'il n'y a aucune machine éligible, on ne peut générer aucun voisin.
+            return
 
-        for machine in self._instance.machines:
-            # On ne peut faire l'échange que si la machine a au moins deux opérations planifiées
-            if len(machine.scheduled_operations) < 2:
-                continue
+        machine = random.choice(possible_machines)
 
-            # On parcourt les opérations planifiées sur la machine
-            for i in range(len(machine.scheduled_operations) - 1):
-                # On prend les deux opérations adjacentes
-                op1 = machine.scheduled_operations[i]
-                op2 = machine.scheduled_operations[i + 1]
+        # On parcourt les opérations planifiées sur la machine choisie
+        for i in range(len(machine.scheduled_operations) - 1):
+            op1_original = machine.scheduled_operations[i]
+            op2_original = machine.scheduled_operations[i + 1]
 
-                # On peut échanger les opérations si l'opération suivante peut commencer avant que l'opération précédente ne se termine
-                if op2.min_start_time <= op1.start_time:
-                    neighbor_sol = copy.deepcopy(sol)
-                    m_copy = neighbor_sol.inst.get_machine(machine.machine_id)
+            # Condition de base pour un échange potentiellement valide
+            if op2_original.min_start_time <= op1_original.start_time:
+                # Création d'une copie de la solution pour éviter les modifications directes
+                neighbor_sol = copy.deepcopy(sol)
+                m_copy = neighbor_sol.inst.get_machine(machine.machine_id)
 
-                    # On inverse les opérations dans la liste
-                    m_copy.scheduled_operations[i], m_copy.scheduled_operations[i + 1] = \
-                        m_copy.scheduled_operations[i + 1], m_copy.scheduled_operations[i]
+                # On identifie et réinitialise les opérations affectées
+                ops_to_reschedule = list(m_copy.scheduled_operations[i:])
 
-                    # Il faut replanifier les opérations à partir de l'opération échangée
-                    previous_op_end_time = m_copy.scheduled_operations[i - 1].end_time if i > 0 else 0
+                for op in ops_to_reschedule:
+                    m_copy.scheduled_operations.remove(op)
+                    op.reset()
 
-                    # On replanifie l'opération 1
-                    for j in range(i, len(m_copy.scheduled_operations)):
-                        op_to_reschedule = m_copy.scheduled_operations[j]
-                        start_time = max(op_to_reschedule.min_start_time, previous_op_end_time)
-                        op_to_reschedule.schedule(m_copy.machine_id, start_time, check_success=False)
-                        previous_op_end_time = op_to_reschedule.end_time
+                # On replanifie avec la méthode fiable solution.schedule()
+                try:
+                    op1_reschedule = ops_to_reschedule[0]
+                    op2_reschedule = ops_to_reschedule[1]
 
-                    neighbor_sol._objective_value = None
+                    # On les replanifie dans l'ordre inverse
+                    neighbor_sol.schedule(op2_reschedule, m_copy)
+                    neighbor_sol.schedule(op1_reschedule, m_copy)
 
-                    yield neighbor_sol
+                    # On replanifie le reste
+                    for op_following in ops_to_reschedule[2:]:
+                        neighbor_sol.schedule(op_following, m_copy)
+                except Exception:
+                    continue
+
+                # On fournit le voisin valide
+                yield neighbor_sol
 
 
 class MyNeighborhood2(Neighborhood):
