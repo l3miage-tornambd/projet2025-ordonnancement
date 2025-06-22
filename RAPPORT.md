@@ -269,7 +269,7 @@ gantt
 
 ```mermaid
 gantt
-    title APRÈS recherche locale (1 Swap)
+    title APRÈS recherche locale (Sur un échange d'opérations)
     dateFormat HH:mm
     axisFormat %H:%M
     
