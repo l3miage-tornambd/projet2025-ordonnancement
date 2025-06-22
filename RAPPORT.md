@@ -197,6 +197,7 @@ La structure de l'algorithme reste la même que celle de la version déterminist
 La complexité totale de l'heuristique non-déterministe est donc identique à celle de la version déterministe : **`O(N * (N + M))`** ou **`O(N² + NM)`**.
 
 #### Visualisation du planning généré par l'heuristique non-déterministe
+
 ```mermaid
 gantt
     title Heuristique non-déterministe (représente 1 résultat possible)
@@ -215,3 +216,70 @@ gantt
 ---
 
 ## 3. Recherche locale
+
+### 3.1 Échange d'opérations sur la même machine
+
+**Description du mouvement :**
+On choisit une machine, puis deux opérations adjacentes dans sa file d'attente, et on les inverse. Par exemple, si une machine faisait `OpA -> OpB -> OpC`, un voisin serait la solution où la machine fait `OpB -> OpA -> OpC`. 
+On ne peut faire cet échange que si les contraintes de précédence sont toujours respectées (par exemple, si OpA n'est pas un prédécesseur direct de OpB dans le même job).
+
+**Analyse :**
+* **Taille :** Si on a $N$ opérations au total, il y a environ $N$ paires adjacentes. La taille du voisinage est donc de l'ordre de $O(N)$.
+* **Polynomial :** Comme la taille du voisinage est linéaire, il est polynomiale.
+* **Connexité :** En effectuant suffisamment d'échanges, on peut obtenir n'importe quelle permutation des opérations sur chaque machine. Ce voisinage permet donc d'explorer tout l'espace des séquencements possibles pour une affectation de machines donnée.
+
+---
+
+### 3.2 Changement de machine pour une opération
+
+**Description du mouvement :**
+On choisit une seule opération dans tout le planning et on la déplace sur une autre machine qui est capable de l'exécuter.
+
+**Analyse :**
+* **Taille :** Pour chaque opération (il y en a $N$), on peut la déplacer sur $C-1$ autres machines (où $C$ est le nombre de machines candidates pour cette opération). La taille est de l'ordre de $O(N \times M)$, où $M$ est le nombre de machines.
+* **Polynomial :** Oui car $O(N \times M)$ est polynomial.
+* **Connexité :** En changeant l'affectation de chaque opération une par une, on peut potentiellement atteindre n'importe quelle configuration d'assignation des opérations aux machines.
+
+---
+
+### 3.3 Illustration de la Recherche Locale via l'échange d'opérations sur la même machine
+
+La recherche locale part d'une solution (par exemple, celle de l'heuristique non-déterministe) et l'améliore. 
+Ici, nous illustrons un mouvement d'échange d'opération sur la même machine : on échange Op1B et Op2A sur la Machine 1, car c'est possible et cela améliore la solution.
+
+#### AVANT (Solution Initiale)
+
+```mermaid
+gantt
+    title AVANT recherche locale
+    dateFormat HH:mm
+    axisFormat %H:%M
+    
+    section Machine 1
+    Op2A (J2) :j2, 00:00, 4h
+    Op1B (J1) :j1, 04:00, 2h
+
+    section Machine 2
+    Op1A (J1) :j1, 00:00, 3h
+    Op2B (J2) :j2, 04:00, 3h
+```
+
+#### APRÈS le mouvement d'échange d'opération
+
+```mermaid
+gantt
+    title APRÈS recherche locale (1 Swap)
+    dateFormat HH:mm
+    axisFormat %H:%M
+    
+    section Machine 1
+    Op1B (J1) :j1, 03:00, 2h
+    Op2A (J2) :j2, 05:00, 4h
+    
+    section Machine 2
+    Op1A (J1) :j1, 00:00, 3h
+    Op2B (J2) :j2, 04:00, 3h
+```
+
+---
+
