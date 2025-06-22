@@ -64,7 +64,7 @@ Pour une solution **non réalisable**, l'objectif est de lui assigner un score q
 On obtiendrait alors une fonction d'évaluation pénalisée $f'$ :
 
 $$
-\min f' = f + (\omega \cdot \sum \text{dépassements}) + (\xi \cdot \text{nb\_tâches\_non\_faites}) + (\delta \cdot \text{nb\_violations\_précédence})
+\min f' = f + (\omega \cdot \sum \text{dépassements}) + (\xi \cdot \text{nbtâchesnonfaites}) + (\delta \cdot \text{nbviolationsprécédence})
 $$
 
 > Avec $\omega, \xi$ et $\delta$ des coefficients de pénalité très élevés, choisis pour garantir que toute solution non réalisable soit lourdement sanctionnée.
